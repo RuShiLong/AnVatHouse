@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Quản trị – Ăn Vặt House</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css?v=11">
+  <script src="/admin.js?v=11" defer></script>
+</head>
+<body class="admin-body">
+  <main id="login-view" class="login-view">
+    <form id="login-form" class="login-card">
+      <img src="/assets/brand/avatar.png" alt="Logo Ăn Vặt House">
+      <h1>Quản lý cửa hàng</h1>
+      <p>Đăng nhập bằng tài khoản chủ shop.</p>
+      <label>Tài khoản quản trị (Email) <input name="username" type="email" autocomplete="username" value="anvathouse@gmail.com" required></label>
+      <label>Mật khẩu <input name="password" type="password" autocomplete="current-password" required></label>
+      <button class="button red full" type="submit">Đăng nhập</button>
+      <p id="login-error" class="error" role="alert"></p>
+    </form>
+  </main>
+
+  <div id="admin-view" class="admin-layout" hidden>
+    <aside class="admin-sidebar">
+      <a class="brand" href="/"><img src="/assets/brand/avatar.png" alt=""><span>ĂN VẶT<br>HOUSE</span></a>
+      <nav aria-label="Quản trị">
+        <button data-tab="overview" class="active" type="button">Tổng quan</button>
+        <button data-tab="orders" type="button">Đơn hàng</button>
+        <button data-tab="customers" type="button">Khách hàng</button>
+        <button data-tab="products" type="button">Sản phẩm</button>
+        <button data-tab="settings" type="button">Cửa hàng</button>
+      </nav>
+      <button id="logout" class="logout" type="button">Đăng xuất</button>
+    </aside>
+
+    <div class="admin-main">
+      <header class="admin-top">
+        <div>
+          <span class="kicker">CHỦ CỬA HÀNG</span>
+          <h1 id="admin-title">Tổng quan</h1>
+        </div>
+        <a class="admin-site-link" href="/" target="_blank" rel="noopener">Xem website ↗</a>
+      </header>
+
+      <div id="admin-toast" class="admin-message" role="status" aria-live="polite"></div>
+
+      <!-- TAB 1: TỔNG QUAN -->
+      <section class="admin-tab" id="tab-overview">
+        <div class="stat-grid" id="stats"></div>
+        <div class="admin-columns overview-columns">
+          <div class="admin-card">
+            <div class="card-head">
+              <h2>Đơn cần xử lý</h2>
+              <button data-goto="orders" class="text-button" type="button">Xem tất cả →</button>
+            </div>
+            <div id="recent-orders"></div>
+          </div>
+          <div class="admin-card">
+            <div class="card-head">
+              <h2>Việc cần làm</h2>
+            </div>
+            <div id="tasks"></div>
+          </div>
+        </div>
+        <div class="admin-card chart-card">
+          <div class="card-head">
+            <h2>Đơn hàng 7 ngày qua</h2>
+            <span class="badge" id="overview-7d-total">Tổng: 0 đơn</span>
+          </div>
+          <div id="overview-chart"></div>
+        </div>
+      </section>
+
+      <!-- TAB 2: ĐƠN HÀNG -->
+      <section class="admin-tab" id="tab-orders" hidden>
+        <div class="stat-grid" id="orders-stats"></div>
+        <div class="admin-columns orders-dashboard-columns">
+          <div class="admin-card">
+            <div class="card-head">
+              <h2>Doanh thu</h2>
+              <div class="revenue-periods" role="group" aria-label="Khoảng thời gian doanh thu">
+                <button type="button" data-revenue-period="week" class="active" aria-pressed="true">Tuần</button>
+                <button type="button" data-revenue-period="month" aria-pressed="false">Tháng</button>
+                <button type="button" data-revenue-period="year" aria-pressed="false">Năm</button>
+              </div>
+            </div>
+            <p id="revenue-period-note" class="card-subtitle"></p>
+            <div id="orders-daily-chart"></div>
+          </div>
+          <div class="admin-card">
+            <div class="card-head">
+              <h2>Trạng thái đơn</h2>
+              <span class="card-subtitle">Đơn hủy không tính vào doanh thu</span>
+            </div>
+            <div id="orders-status-breakdown"></div>
+          </div>
+        </div>
+        <div class="admin-card">
+          <div class="card-head orders-list-head">
+            <h2>☷ Quản lý đơn hàng</h2>
+            <div class="orders-filter-row">
+              <div class="order-filter-pills" id="order-filter-pills" role="tablist" aria-label="Lọc trạng thái đơn hàng"></div>
+              <div class="orders-toolbar">
+                <input id="order-search" type="search" placeholder="⌕  Tìm mã đơn hàng..." aria-label="Tìm mã đơn, tên hoặc số điện thoại">
+              </div>
+            </div>
+          </div>
+          <div id="orders-list"></div>
+        </div>
+      </section>
+
+      <!-- TAB 3: KHÁCH HÀNG -->
+      <section class="admin-tab" id="tab-customers" hidden>
+        <div class="stat-grid three-cols" id="customers-stats"></div>
+        <div class="admin-columns customers-layout">
+          <div class="admin-card">
+            <div class="card-head customer-head">
+              <div>
+                <h2>Danh sách khách hàng</h2>
+                <p class="card-subtitle">Chỉ hiển thị tài khoản đã đăng ký. Đơn khách vãng lai nằm trong mục Đơn hàng (không tự gộp theo SĐT).</p>
+              </div>
+              <input id="customer-search" type="search" placeholder="Tìm theo tên, email hoặc SĐT..." aria-label="Tìm kiếm khách hàng">
+            </div>
+            <div id="customers-list"></div>
+          </div>
+          <div class="admin-card" id="customer-detail-panel">
+            <h2>Chi tiết khách hàng</h2>
+            <div id="customer-detail-content">
+              <p class="empty-note">Chọn một khách hàng ở danh sách để xem thông tin chi tiết và lịch sử đơn hàng.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: SẢN PHẨM -->
+      <section class="admin-tab" id="tab-products" hidden>
+        <div class="admin-card analytics-card">
+          <div class="card-head">
+            <div>
+              <h2>Thống kê quan tâm sản phẩm</h2>
+              <p class="card-subtitle" id="analytics-since-note">Chỉ ghi nhận lượt xem và thêm vào giỏ thực tế từ thời điểm triển khai.</p>
+            </div>
+          </div>
+          <div class="admin-columns analytics-columns" id="product-analytics"></div>
+        </div>
+
+        <div class="admin-card">
+          <div class="card-head">
+            <div>
+              <h2>Danh sách sản phẩm</h2>
+              <p class="card-subtitle">Quản lý giá bán, tồn kho và trạng thái hiển thị.</p>
+            </div>
+            <div class="orders-toolbar">
+              <input id="product-admin-search" type="search" placeholder="Tìm tên sản phẩm..." aria-label="Tìm sản phẩm">
+              <button id="new-product-toggle" class="button red" type="button">+ Thêm sản phẩm</button>
+            </div>
+          </div>
+          <form id="new-product" class="product-form" hidden>
+            <h3>Sản phẩm mới</h3>
+            <label>Tên <input name="name" required maxlength="100"></label>
+            <label>Danh mục <select name="category"><option>Bánh tráng</option><option>Cơm cháy</option><option>Kẹo</option><option>Combo</option><option>Khác</option></select></label>
+            <label>Quy cách <input name="weight" required maxlength="40" placeholder="Ví dụ: 150g"></label>
+            <label>Giá (₫) <input name="price" type="number" min="0" step="1000" required></label>
+            <label>Tồn kho <input name="stock" type="number" min="0" step="1" required></label>
+            <label>Mô tả <textarea name="description" maxlength="1000"></textarea></label>
+            <label>Ảnh sản phẩm <input name="photo" type="file" accept="image/jpeg,image/png" required></label>
+            <button class="button red" type="submit">Lưu sản phẩm</button>
+          </form>
+          <div id="products-list"></div>
+        </div>
+      </section>
+
+      <!-- TAB 5: CỬA HÀNG -->
+      <section class="admin-tab" id="tab-settings" hidden>
+        <form id="settings-form" class="settings-dashboard-form">
+          <div class="settings-cards-grid">
+            <!-- Nhóm 1: Nhận đơn & giao hàng -->
+            <section class="admin-card settings-group-card">
+              <div class="settings-group-head">
+                <span class="settings-group-icon" aria-hidden="true">🚚</span>
+                <div>
+                  <h2>Nhận đơn & giao hàng</h2>
+                  <p>Thiết lập trạng thái nhận đơn trực tuyến và phí giao hàng.</p>
+                </div>
+              </div>
+              <label class="toggle-row">
+                <div>
+                  <strong>Mở nhận đơn trực tuyến</strong>
+                  <small>Cho phép khách đặt hàng trên website khi có khu vực và phí giao.</small>
+                </div>
+                <input name="accepting_orders" type="checkbox">
+              </label>
+              <div class="settings-two-col">
+                <label>Khu vực giao hàng
+                  <input name="shipping_area" maxlength="160" placeholder="Ví dụ: Nội thành Biên Hòa">
+                </label>
+                <label>Phí giao cố định (₫)
+                  <input name="shipping_fee" type="number" min="0" step="1000" required>
+                </label>
+              </div>
+            </section>
+
+            <!-- Nhóm 2: Thanh toán & VietQR -->
+            <section class="admin-card settings-group-card">
+              <div class="settings-group-head">
+                <span class="settings-group-icon" aria-hidden="true">💳</span>
+                <div>
+                  <h2>Thanh toán & VietQR</h2>
+                  <p>Quản lý COD và cấu hình tài khoản ngân hàng tạo mã VietQR tự động.</p>
+                </div>
+              </div>
+              <label class="toggle-row">
+                <div>
+                  <strong>Thanh toán khi nhận hàng (COD)</strong>
+                  <small>Cho phép khách thanh toán tiền mặt khi nhận hàng.</small>
+                </div>
+                <input name="cod_enabled" type="checkbox" checked>
+              </label>
+              <label class="toggle-row">
+                <div>
+                  <strong>Chuyển khoản ngân hàng (VietQR)</strong>
+                  <small>Tạo mã VietQR theo tổng tiền thực tế của đơn hàng.</small>
+                </div>
+                <input name="bank_enabled" type="checkbox" checked>
+              </label>
+              <div class="settings-two-col">
+                <label>Ngân hàng (Mã BIN: 970441)
+                  <input name="bank_name" maxlength="40" value="VIB" placeholder="VIB">
+                  <input name="bank_bin" type="hidden" value="970441">
+                </label>
+                <label>Số tài khoản
+                  <input name="bank_account_no" maxlength="30" value="937799180" placeholder="937799180">
+                </label>
+              </div>
+              <label>Tên chủ tài khoản (để trống nếu chưa xác nhận)
+                <input name="bank_account_name" maxlength="80" placeholder="Nhập tên chủ tài khoản VIB chính thức...">
+              </label>
+              <label>Ghi chú chuyển khoản bổ sung (tùy chọn)
+                <textarea name="bank_details" maxlength="500" rows="2" placeholder="Hướng dẫn thêm cho khách khi chuyển khoản (nếu có)"></textarea>
+              </label>
+            </section>
+
+            <!-- Nhóm 3: Nội dung trang chủ -->
+            <section class="admin-card settings-group-card">
+              <div class="settings-group-head">
+                <span class="settings-group-icon" aria-hidden="true">🏠</span>
+                <div>
+                  <h2>Nội dung trang chủ</h2>
+                  <p>Thiết lập tiêu đề, lời giới thiệu và ảnh đầu tiên trong 5 banner trang chủ.</p>
+                </div>
+              </div>
+              <label>Tiêu đề trang chủ
+                <input name="hero_title" maxlength="80" placeholder="Ăn Vặt House – Ăn gì cũng vui!">
+              </label>
+              <label>Giới thiệu ngắn ở đầu trang
+                <textarea name="hero_text" maxlength="300" rows="2" placeholder="Chọn món bạn thích, thêm vào giỏ và đặt hàng thật dễ."></textarea>
+              </label>
+              <label>Giới thiệu về shop
+                <textarea name="about_text" maxlength="700" rows="3" placeholder="Câu chuyện thương hiệu Ăn Vặt House..."></textarea>
+              </label>
+              <label>Thay ảnh banner đầu tiên (JPG/PNG, tối đa 4MB)
+                <input name="hero_photo" type="file" accept="image/jpeg,image/png">
+              </label>
+            </section>
+
+            <!-- Nhóm 4: Liên hệ & chính sách -->
+            <section class="admin-card settings-group-card">
+              <div class="settings-group-head">
+                <span class="settings-group-icon" aria-hidden="true">📞</span>
+                <div>
+                  <h2>Liên hệ & chính sách</h2>
+                  <p>Thông tin hỗ trợ khách hàng và các chính sách mua hàng.</p>
+                </div>
+              </div>
+              <div class="settings-two-col">
+                <label>Số điện thoại liên hệ
+                  <input name="phone" maxlength="30" placeholder="0937 799 180">
+                </label>
+                <label>Email liên hệ
+                  <input name="email" type="email" maxlength="120" placeholder="Anvathouse@gmail.com">
+                </label>
+              </div>
+              <label>Chính sách giao hàng
+                <textarea name="shipping_policy" maxlength="1000" rows="2" placeholder="Thời gian và quy định giao hàng..."></textarea>
+              </label>
+              <label>Chính sách hủy / đổi trả
+                <textarea name="return_policy" maxlength="1000" rows="2" placeholder="Quy định đổi trả khi sản phẩm có vấn đề..."></textarea>
+              </label>
+            </section>
+          </div>
+
+          <div class="settings-save-bar">
+            <button class="button yellow save-settings-btn" type="submit">Lưu thay đổi</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+</body>
+</html>
